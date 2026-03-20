@@ -3,28 +3,26 @@
 # ══════════════════════════════════════════════════════════════
 # Stage 1: Build
 # ══════════════════════════════════════════════════════════════
-FROM docker.io/library/golang:1.24-trixie AS builder
+FROM docker.io/library/golang:1.25-trixie AS builder
 
-# ╭──────────────────────────────────────────────────────────╮
-# │ Build Dependencies                                       │
-# ╰──────────────────────────────────────────────────────────╯
-RUN apt-get update \
- && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    curl git build-essential \
- && apt-get clean \
+RUN apt-get update && apt-get install --yes --no-install-recommends \
+    git ca-certificates make gcc pkg-config \
  && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /build
+WORKDIR /opt/
 
-# Build the OpenTelemetry Collector using the builder tool
-# https://github.com/open-telemetry/opentelemetry-collector-builder
-RUN go install go.opentelemetry.io/collector/cmd/builder@v0.121.0 \
- && printf "dist:\n  name: otelcol-gautada\n  description: OpenTelemetry Collector Contrib for gautada\n  output_path: /build/otelcol\n  otelcol_version: 0.121.0\n\nreceivers:\n  - import: go.opentelemetry.io/collector/receiver/otlpreceiver\n  - import: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver\n\nprocessors:\n  - import: go.opentelemetry.io/collector/processor/batchprocessor\n\nexporters:\n  - import: go.opentelemetry.io/collector/exporter/otlpexporter\n  - import: github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter\n\nextensions:\n  - import: go.opentelemetry.io/collector/extension/zpagesextension\n  - import: github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension\n" > manifest.yaml \
- && builder --config manifest.yaml
+RUN git clone --depth 1 \
+    --branch "v0.148.0" "https://github.com/open-telemetry/opentelemetry-collector-contrib.git" \
+    otelcol
 
-# ══════════════════════════════════════════════════════════════
-# Stage 2: Runtime
-# ══════════════════════════════════════════════════════════════
+# Optional: verify tag signature or commit hash here.
+
+WORKDIR /opt/otelcol
+RUN make otelcontribcol
+
+# # ══════════════════════════════════════════════════════════════
+# # Stage 2: Runtime
+# # ══════════════════════════════════════════════════════════════
 ARG CONTAINER_VERSION=latest
 FROM docker.io/gautada/debian:${CONTAINER_VERSION} AS container
 
@@ -32,17 +30,12 @@ FROM docker.io/gautada/debian:${CONTAINER_VERSION} AS container
 # │ Metadata                                                 │
 # ╰──────────────────────────────────────────────────────────╯
 LABEL org.opencontainers.image.title="collector"
-LABEL org.opencontainers.image.description="OpenTelemetry Collector for gautada"
+LABEL org.opencontainers.image.description="OpenTelemetry (Contrib)Collector"
 LABEL org.opencontainers.image.url="https://github.com/gautada/collector"
 LABEL org.opencontainers.image.source="https://github.com/gautada/collector"
 
-# ╭──────────────────────────────────────────────────────────╮
-# │ Application                                              │
-# ╰──────────────────────────────────────────────────────────╯
-WORKDIR /opt/otelcol
-
 # Copy the built binary
-COPY --from=builder /build/otelcol/otelcol-gautada /usr/bin/otelcol
+COPY --from=builder /opt/otelcol/bin/otelcontribcol_linux_* /usr/bin/otelcol
 
 # ╭──────────────────────────────────────────────────────────╮
 # │ Configuration                                            │
