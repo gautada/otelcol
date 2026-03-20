@@ -3,7 +3,7 @@
 # ══════════════════════════════════════════════════════════════
 # Stage 1: Build
 # ══════════════════════════════════════════════════════════════
-FROM docker.io/library/golang:1.24-bookworm AS builder
+FROM docker.io/library/golang:1.24-trixie AS builder
 
 # ╭──────────────────────────────────────────────────────────╮
 # │ Build Dependencies                                       │
