@@ -1,4 +1,5 @@
 # syntax=docker/dockerfile:1.7
+ARG CONTAINER_VERSION=latest
 
 # ══════════════════════════════════════════════════════════════
 # Stage 1: Build
@@ -23,7 +24,6 @@ RUN make otelcontribcol
 # # ══════════════════════════════════════════════════════════════
 # # Stage 2: Runtime
 # # ══════════════════════════════════════════════════════════════
-ARG CONTAINER_VERSION=latest
 FROM docker.io/gautada/debian:${CONTAINER_VERSION} AS container
 
 # ╭──────────────────────────────────────────────────────────╮
@@ -36,6 +36,16 @@ LABEL org.opencontainers.image.source="https://github.com/gautada/collector"
 
 # Copy the built binary
 COPY --from=builder /opt/otelcol/bin/otelcontribcol_linux_* /usr/bin/otelcol
+
+# ╭──────────────────────────────────────────────────────────╮
+# │ User                                                     │
+# ╰──────────────────────────────────────────────────────────╯
+ARG USER=watcher
+RUN /usr/sbin/usermod -l $USER debian \
+ && /usr/sbin/usermod -d /home/$USER -m $USER \
+ && /usr/sbin/groupmod -n $USER debian \
+ && /bin/passwd -d $USER \
+ && rm -rf /home/debian 
 
 # ╭──────────────────────────────────────────────────────────╮
 # │ Configuration                                            │
