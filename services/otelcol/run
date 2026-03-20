@@ -1,0 +1,5 @@
+#!/bin/sh
+# s6 run script for otelcol
+# Launches the built OpenTelemetry Collector with the standard configuration.
+
+exec /usr/bin/otelcol --config /etc/otelcol/config.yaml
