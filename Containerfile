@@ -6,32 +6,30 @@ ARG CONTAINER_VERSION=latest
 # ══════════════════════════════════════════════════════════════
 FROM docker.io/library/golang:1.25-trixie AS builder
 
+COPY scripts/latest-tag.sh /usr/bin/latest-repo-release
+
 RUN apt-get update && apt-get install --yes --no-install-recommends \
     git ca-certificates make gcc pkg-config \
- && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/* \
+ && export COLLECTOR_VERSION=$(/usr/bin/latest-repo-release)
 
 WORKDIR /opt/
 
 RUN git clone --depth 1 \
-    --branch "v0.148.0" "https://github.com/open-telemetry/opentelemetry-collector-contrib.git" \
+    --branch "v$(/usr/bin/latest-repo-release)" "https://github.com/open-telemetry/opentelemetry-collector-contrib.git" \
     otelcol
 
 # Optional: verify tag signature or commit hash here.
 
 WORKDIR /opt/otelcol
+ENTRYPOINT ["tail", "-f", "/dev/null"]
+RUN sed -i 's/-dev//g' cmd/otelcontribcol/builder-config.yaml 
 RUN make otelcontribcol
 
-# RUN go build -o otelcontribcol \
-#   -ldflags="\
-#     -X go.opentelemetry.io/collector/internal/version.Version=v0.148.0 \
-#     -X go.opentelemetry.io/collector/internal/version.GitHash=$(git rev-parse --short HEAD) \
-#     -X go.opentelemetry.io/collector/internal/version.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-#   ./cmd/otelcontribcol
-#   RUN 
 
-# # ══════════════════════════════════════════════════════════════
-# # Stage 2: Runtime
-# # ══════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════
+# Stage 2: Runtime
+# ══════════════════════════════════════════════════════════════
 FROM docker.io/gautada/debian:${CONTAINER_VERSION} AS container
 
 # ╭──────────────────────────────────────────────────────────╮
@@ -43,7 +41,8 @@ LABEL org.opencontainers.image.url="https://github.com/gautada/collector"
 LABEL org.opencontainers.image.source="https://github.com/gautada/collector"
 
 # Copy the built binary
-COPY --from=builder /opt/otelcol/bin/otelcontribcol_linux_* /usr/bin/otelcol
+COPY --from=builder /opt/otelcol/bin/otelcontribcol-linux-* /usr/bin/otelcol
+COPY --from=builder /usr/bin/latest-repo-release /usr/bin/latest-repo-release
 
 # ╭──────────────────────────────────────────────────────────╮
 # │ User                                                     │
