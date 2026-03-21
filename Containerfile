@@ -21,6 +21,14 @@ RUN git clone --depth 1 \
 WORKDIR /opt/otelcol
 RUN make otelcontribcol
 
+# RUN go build -o otelcontribcol \
+#   -ldflags="\
+#     -X go.opentelemetry.io/collector/internal/version.Version=v0.148.0 \
+#     -X go.opentelemetry.io/collector/internal/version.GitHash=$(git rev-parse --short HEAD) \
+#     -X go.opentelemetry.io/collector/internal/version.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+#   ./cmd/otelcontribcol
+#   RUN 
+
 # # ══════════════════════════════════════════════════════════════
 # # Stage 2: Runtime
 # # ══════════════════════════════════════════════════════════════
