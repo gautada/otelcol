@@ -40,7 +40,7 @@ LABEL org.opencontainers.image.url="https://github.com/gautada/collector"
 LABEL org.opencontainers.image.source="https://github.com/gautada/collector"
 
 # Copy the built binary
-COPY --from=builder /opt/otelcol/bin/otelcontribcol-linux-* /usr/bin/otelcol
+COPY --from=builder /opt/otelcol/bin/otelcontribcol_linux_* /usr/bin/otelcol
 COPY --from=builder /usr/bin/latest-repo-release /usr/bin/latest-repo-release
 
 # ╭──────────────────────────────────────────────────────────╮
