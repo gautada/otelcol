@@ -35,12 +35,21 @@ spec:
               protocol: TCP
           securityContext:
             privileged: true
-          # volumeMounts:
-          #   - name: container-volume
-          #     mountPath: /mnt/volumes/container
+          volumeMounts:
+            - mountPath: /etc/otelcol
+              name: config-volume
+              readOnly: true
+      volumes:
+        - name: config-volume
+          configMap:
+            name: prometheus
       restartPolicy: Always
       schedulerName: default-scheduler
-      # volumes:
-      #   - name: container-volume
-      #     persistentVolumeClaim:
-      #       claimName: podman-container-claim
+      volumes:
+        - configMap:
+            defaultMode: 420
+            items:
+              - key: config.yaml
+                path: config.yaml
+            name: otelcol
+          name: config-volume

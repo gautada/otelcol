@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otelcol
+  namespace: telemetry
+data:
+  config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+
+      prometheus:
+        config:
+          scrape_configs:
+            - job_name: dns
+              scrape_interval: 15s
+              metrics_path: /metrics
+              static_configs:
+                - targets:
+                    - kube-dns.kube-system.svc.cluster.local:9153
+
+    processors:
+      batch: {}
+
+    exporters:
+      prometheus:
+        endpoint: 0.0.0.0:8889
+        resource_to_telemetry_conversion:
+          enabled: true
+
+    service:
+      pipelines:
+        metrics:
+          receivers: [otlp, prometheus]
+          processors: [batch]
+          exporters: [prometheus]
