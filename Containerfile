@@ -10,8 +10,7 @@ COPY scripts/latest-tag.sh /usr/bin/latest-repo-release
 
 RUN apt-get update && apt-get install --yes --no-install-recommends \
     git ca-certificates make gcc pkg-config \
- && rm -rf /var/lib/apt/lists/* \
- && export COLLECTOR_VERSION=$(/usr/bin/latest-repo-release)
+ && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt/
 
@@ -23,8 +22,8 @@ RUN git clone --depth 1 \
 
 WORKDIR /opt/otelcol
 ENTRYPOINT ["tail", "-f", "/dev/null"]
-RUN sed -i 's/-dev//g' cmd/otelcontribcol/builder-config.yaml 
-RUN make otelcontribcol
+RUN sed -i 's/-dev//g' cmd/otelcontribcol/builder-config.yaml \
+ && make otelcontribcol
 
 
 # ══════════════════════════════════════════════════════════════
