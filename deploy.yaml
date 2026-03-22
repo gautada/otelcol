@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: otelcol
-          image: gautada/otelcol:dev
+          image: gautada/otelcol:0.148.0
           imagePullPolicy: Always
           ports:
             - containerPort: 4317
