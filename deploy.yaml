@@ -39,10 +39,6 @@ spec:
             - mountPath: /etc/otelcol
               name: config-volume
               readOnly: true
-      volumes:
-        - name: config-volume
-          configMap:
-            name: prometheus
       restartPolicy: Always
       schedulerName: default-scheduler
       volumes:
