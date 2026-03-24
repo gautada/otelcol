@@ -27,10 +27,10 @@ spec:
             - containerPort: 4317
               name: grpc
               protocol: TCP
-            - name: http
+            - name: http-metrics
               containerPort: 4318
               protocol: TCP
-            - name: prometheus
+            - name: metrics
               containerPort: 8889
               protocol: TCP
           securityContext:

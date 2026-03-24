@@ -10,11 +10,11 @@ spec:
       port: 4317
       protocol: TCP
       targetPort: 4317
-    - name: http
+    - name: http-metrics
       port: 4318
       protocol: TCP
       targetPort: 4318
-    - name: prometheus
+    - name: metrics
       port: 8889
       protocol: TCP
       targetPort: 8889
